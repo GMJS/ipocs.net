@@ -26,6 +26,9 @@ namespace IPOCS
         public delegate void OnDisconnectDelegate(Client client);
         public event OnDisconnectDelegate OnDisconnect;
 
+        public delegate bool? OnConnectionRequestDelegate(Client client, Protocol.Packets.ConnectionRequest request);
+        public OnConnectionRequestDelegate OnConnectionRequest;
+
         public OnDisconnectDelegate OnConnect;
 
         public delegate void OnMessageDelegate(IPOCS.Protocol.Message msg);
@@ -75,9 +78,13 @@ namespace IPOCS
 
                     this.UnitID = Encoding.UTF8.GetBytes(message.RXID_OBJECT)[0];
 
-
-                    // TODO: Validate the site data version.
-                    // TODO: Check protocol version.
+                    if (OnConnectionRequest != null)
+                    {
+                        if (!(OnConnectionRequest?.Invoke(this, pkt)).Value)
+                        {
+                            Disconnect();
+                        }
+                    }
 
                     this.staleTimer.Change(Timeout.Infinite, Timeout.Infinite);
                     //this.unit = MainWindow.Concentrators.FirstOrDefault((c) => c.UnitID == this.UnitID);

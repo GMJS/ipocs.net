@@ -25,6 +25,8 @@ namespace IPOCS
 
         public delegate void OnConnectDelegate(Client client);
         public event OnConnectDelegate OnConnect;
+        public delegate bool? OnConnectionRequestDelegate(Client client, Protocol.Packets.ConnectionRequest request);
+        public event OnConnectionRequestDelegate OnConnectionRequest;
         public event OnConnectDelegate OnDisconnect;
 
         public delegate void OnListeningDelegate(bool isListening);
@@ -106,6 +108,7 @@ namespace IPOCS
                 {
                     var tcpClient = await Task.Run(() => listener.AcceptTcpClientAsync(), this.stopToken.Token);
                     var client = new Client(tcpClient);
+                    client.OnConnectionRequest += (c, r) => { return OnConnectionRequest?.Invoke(c, r); };
                     client.OnDisconnect += (c) => { Clients.Remove(c); OnDisconnect?.Invoke(c); };
                     client.OnConnect += (c) => { Clients.Add(c); OnConnect?.Invoke(client); };
                     Clients.Add(client);

@@ -13,7 +13,7 @@ namespace IPOCS
         private TcpClient tcpClient { get; set; }
         private Thread clientReadThread { get; set; }
         private Timer staleTimer { get; set; }
-        public byte UnitID { get; private set; } = 0;
+        public ushort UnitID { get; private set; } = 0;
 
         public Client(TcpClient client)
         {
@@ -76,7 +76,7 @@ namespace IPOCS
                         return;
                     }
 
-                    this.UnitID = Encoding.UTF8.GetBytes(message.RXID_OBJECT)[0];
+                    this.UnitID = ushort.Parse(message.RXID_OBJECT);
 
                     if (OnConnectionRequest != null)
                     {
@@ -95,35 +95,13 @@ namespace IPOCS
                     //}
 
                     var responseMsg = new IPOCS.Protocol.Message();
-                    responseMsg.RXID_OBJECT = Encoding.UTF8.GetString(new byte[] { this.UnitID });
+                    responseMsg.RXID_OBJECT = this.UnitID.ToString();
                     responseMsg.packets.Add(new IPOCS.Protocol.Packets.ConnectionResponse
                     {
                         RM_PROTOCOL_VERSION = pkt.RM_PROTOCOL_VERSION
                     });
                     this.Send(responseMsg);
 
-                    #region For now, ignore the protocol version. CRC calcs seem off.
-                    /*
-                    List<byte> data = this.unit.Serialize();
-                    var crc = new ccit_crc16(InitialCrcValue.NonZero1);
-                    ushort computedChecksum = crc.ComputeChecksum(data.ToArray());
-                    ushort providedChecksum = (ushort)Convert.ToInt32(pkt.RXID_SITE_DATA_VERSION, 16);
-
-                    if (providedChecksum == 0 || computedChecksum != providedChecksum)
-                    {
-                        responseMsg = new IPOCS.Protocol.Message();
-                        responseMsg.RXID_OBJECT = Encoding.UTF8.GetString(new byte[] { this.UnitID });
-                        responseMsg.packets.Add(new IPOCS.Protocol.Packets.ApplicationData
-                        {
-                            RNID_XUSER = 0x0001,
-                            PAYLOAD = data.ToArray()
-                        });
-                        this.Send(responseMsg);
-                        this.Disconnect();
-                        break;
-                    } else
-                    */
-                    #endregion
                     OnConnect?.Invoke(this);
                 }
                 else

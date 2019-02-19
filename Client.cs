@@ -119,7 +119,10 @@ namespace IPOCS
         public void Send(IPOCS.Protocol.Message msg)
         {
             var buffer = msg.serialize().ToArray();
-            this.tcpClient.GetStream().Write(buffer, 0, buffer.Length);
+            try
+            {
+                this.tcpClient.GetStream().Write(buffer, 0, buffer.Length);
+            } catch { }
         }
     }
 }

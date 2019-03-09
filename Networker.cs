@@ -46,13 +46,8 @@ namespace IPOCS
 
         private Networker()
         {
-            mdns = new MulticastService((sourceInterfaces) => { return sourceInterfaces; });
-            mdnsServiceDiscovery = new ServiceDiscovery(mdns);
-            mdnsServiceDiscovery.Advertise(new ServiceProfile("ipocs", "_ipocs._tcp", 10000));
-
             this.listenerThread = new Thread(new ThreadStart(this.listenerThreadStart));
             this.listener = new TcpListener(IPAddress.Any, 10000);
-            this.stopToken.Token.Register(() => listener.Stop());
         }
 
         ~Networker()
@@ -65,12 +60,12 @@ namespace IPOCS
         }
 
 
-        CancellationTokenSource stopToken = new CancellationTokenSource();
+        CancellationTokenSource stopToken;
         public bool isListening
         {
             get
             {
-                return this.listenerThread.IsAlive;
+                return _started;
             }
             set
             {
@@ -80,6 +75,11 @@ namespace IPOCS
                     {
                         this.listenerThread = new Thread(new ThreadStart(this.listenerThreadStart));
                         this.listenerThread.Start();
+                        this.stopToken = new CancellationTokenSource();
+                        this.stopToken.Token.Register(() => listener.Stop());
+                        mdns = new MulticastService((sourceInterfaces) => { return sourceInterfaces; });
+                        mdnsServiceDiscovery = new ServiceDiscovery(mdns);
+                        mdnsServiceDiscovery.Advertise(new ServiceProfile("ipocs", "_ipocs._tcp", 10000));
                         mdns.Start();
                         _started = value;
                     }

@@ -11,8 +11,8 @@ namespace IPOCS.Protocol.Packets.Orders
   public class SetOutput : Packet
   {
     public static new byte RNID_PACKET { get { return 13; } }
-    public RQ_OUTPUT_COMMAND RQ_OUTPUT_COMMAND;
-    public short RT_DURAION;
+    public RQ_OUTPUT_COMMAND RQ_OUTPUT_COMMAND { get; set; }
+    public short RT_DURAION { get; set; }
 
     protected override byte parseSpecific(List<byte> buffer)
     {

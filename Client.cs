@@ -14,6 +14,7 @@ namespace IPOCS
         private Thread clientReadThread { get; set; }
         private Timer staleTimer { get; set; }
         public ushort UnitID { get; private set; } = 0;
+        public string Name { get; set; }
 
         public Client(TcpClient client)
         {

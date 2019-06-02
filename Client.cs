@@ -84,16 +84,11 @@ namespace IPOCS
                         if (!(OnConnectionRequest?.Invoke(this, pkt)).Value)
                         {
                             Disconnect();
+                            return;
                         }
                     }
 
                     this.staleTimer.Change(Timeout.Infinite, Timeout.Infinite);
-                    //this.unit = MainWindow.Concentrators.FirstOrDefault((c) => c.UnitID == this.UnitID);
-                    //if (unit == null)
-                    //{
-                    //    this.Disconnect();
-                    //    break;
-                    //}
 
                     var responseMsg = new IPOCS.Protocol.Message();
                     responseMsg.RXID_OBJECT = this.UnitID.ToString();

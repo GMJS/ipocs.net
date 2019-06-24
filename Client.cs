@@ -15,6 +15,11 @@ namespace IPOCS
         private Timer staleTimer { get; set; }
         public ushort UnitID { get; private set; } = 0;
         public string Name { get; set; }
+        public System.Net.EndPoint RemoteEndpoint { get
+            {
+                return tcpClient.Client.RemoteEndPoint;
+            }
+        }
 
         public Client(TcpClient client)
         {

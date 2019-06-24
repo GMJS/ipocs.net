@@ -85,7 +85,7 @@ namespace IPOCS
                     }
                     if (!value && _started)
                     {
-                        Clients.ForEach((c) =>
+                        Clients.ToList().ForEach((c) =>
                         {
                             c.Disconnect();
                         });

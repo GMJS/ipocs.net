@@ -111,7 +111,6 @@ namespace IPOCS
                     client.OnConnectionRequest += (c, r) => { return OnConnectionRequest?.Invoke(c, r); };
                     client.OnDisconnect += (c) => { Clients.Remove(c); OnDisconnect?.Invoke(c); };
                     client.OnConnect += (c) => { Clients.Add(c); OnConnect?.Invoke(client); };
-                    Clients.Add(client);
                 } catch (Exception) { }
             }
             this.OnListening?.Invoke(false);

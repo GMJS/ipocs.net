@@ -58,12 +58,10 @@ namespace IPOCS
 
         private void clientReader()
         {
-            var logFile = new System.IO.StreamWriter(Guid.NewGuid() + ".txt");
             try
             {
                 while (this.Connected)
                 {
-                    logFile.WriteLine("1");
                     var buffer = new byte[255];
                     int recievedCount = 0;
                     try
@@ -73,7 +71,6 @@ namespace IPOCS
                     catch { break; }
                     if (0 == recievedCount)
                         continue;
-                    logFile.WriteLine("2");
 
                     try
                     {
@@ -82,23 +79,19 @@ namespace IPOCS
                     catch { break; }
                     if (0 == recievedCount)
                         continue;
-                    logFile.WriteLine("3");
 
                     // Message received. Parse it.
                     var message = IPOCS.Protocol.Message.create(buffer.Take(recievedCount).ToArray());
-                    logFile.WriteLine("4");
 
                     // If unit has not yet sent a ConnectionRequest
                     if (this.UnitID == 0)
                     {
-                        logFile.WriteLine("5");
                         var pkt = message.packets.FirstOrDefault((p) => p is IPOCS.Protocol.Packets.ConnectionRequest) as IPOCS.Protocol.Packets.ConnectionRequest;
                         if (pkt == null)
                         {
                             // First message must be a Connection Request
                             break;
                         }
-                        logFile.WriteLine("6");
 
                         this.UnitID = ushort.Parse(message.RXID_OBJECT);
 
@@ -109,7 +102,6 @@ namespace IPOCS
                                 break;
                             }
                         }
-                        logFile.WriteLine("7");
 
                         this.staleTimer.Change(Timeout.Infinite, Timeout.Infinite);
 
@@ -120,25 +112,19 @@ namespace IPOCS
                             RM_PROTOCOL_VERSION = pkt.RM_PROTOCOL_VERSION
                         });
                         this.Send(responseMsg);
-                        logFile.WriteLine("8");
 
                         OnConnect?.Invoke(this);
-                        logFile.WriteLine("9");
                     }
                     else
                         // And if not, hand it to listeners
                         OnMessage?.Invoke(message);
-                    logFile.WriteLine("10");
                 }
             } catch (Exception e)
             {
-                logFile.WriteLine("Unhandled Exception caught.");
-                logFile.WriteLine(e.ToString());
                 throw;
             }
             finally
             {
-                logFile.Close();
             }
             OnDisconnect?.Invoke(this);
         }

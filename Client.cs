@@ -10,16 +10,15 @@ namespace IPOCS
 {
     public class Client
     {
-        private TcpClient tcpClient { get; }
-        private Thread clientReadThread { get; }
-        private Timer staleTimer { get; }
-        public ushort UnitID { get; private set; } = 0;
+        private TcpClient TcpClient { get; }
+        private Thread ClientReadThread { get; }
+        private Timer StaleTimer { get; }
         public string Name { get; set; } = string.Empty;
         public System.Net.EndPoint RemoteEndpoint
         {
             get
             {
-                return tcpClient.Client.RemoteEndPoint;
+                return TcpClient.Client.RemoteEndPoint;
             }
         }
 
@@ -27,16 +26,16 @@ namespace IPOCS
         {
             get
             {
-                return this.tcpClient?.Client != null ? this.tcpClient.Connected : false;
+                return this.TcpClient?.Client != null ? this.TcpClient.Connected : false;
             }
         }
 
         public Client(TcpClient client)
         {
-            this.tcpClient = client;
-            this.clientReadThread = new Thread(new ThreadStart(this.clientReader));
-            this.staleTimer = new Timer(new TimerCallback(StaleTimer), null, 1000, Timeout.Infinite);
-            this.clientReadThread.Start();
+            this.TcpClient = client;
+            this.ClientReadThread = new Thread(new ThreadStart(this.ClientReader));
+            this.StaleTimer = new Timer(new TimerCallback(StaleTimerFunc), null, 1000, Timeout.Infinite);
+            this.ClientReadThread.Start();
         }
 
         public delegate void OnDisconnectDelegate(Client client);
@@ -51,12 +50,12 @@ namespace IPOCS
         public event OnMessageDelegate OnMessage;
         //public ObjectTypes.Concentrator unit { get; private set; } = null;
 
-        void StaleTimer(object state)
+        void StaleTimerFunc(object state)
         {
-            this.tcpClient.Close();
+            this.TcpClient.Close();
         }
 
-        private void clientReader()
+        private void ClientReader()
         {
             try
             {
@@ -66,7 +65,7 @@ namespace IPOCS
                     int recievedCount = 0;
                     try
                     {
-                        recievedCount = this.tcpClient.GetStream().Read(buffer, 0, 1);
+                        recievedCount = this.TcpClient.GetStream().Read(buffer, 0, 1);
                     }
                     catch { break; }
                     if (0 == recievedCount)
@@ -74,7 +73,7 @@ namespace IPOCS
 
                     try
                     {
-                        recievedCount += this.tcpClient.GetStream().Read(buffer, 1, buffer[0] - 1);
+                        recievedCount += this.TcpClient.GetStream().Read(buffer, 1, buffer[0] - 1);
                     }
                     catch { break; }
                     if (0 == recievedCount)
@@ -84,16 +83,16 @@ namespace IPOCS
                     var message = IPOCS.Protocol.Message.create(buffer.Take(recievedCount).ToArray());
 
                     // If unit has not yet sent a ConnectionRequest
-                    if (this.UnitID == 0)
+                    if (string.IsNullOrWhiteSpace(this.Name))
                     {
-                        var pkt = message.packets.FirstOrDefault((p) => p is IPOCS.Protocol.Packets.ConnectionRequest) as IPOCS.Protocol.Packets.ConnectionRequest;
+                        var pkt = message.packets.FirstOrDefault((p) => p is Protocol.Packets.ConnectionRequest) as Protocol.Packets.ConnectionRequest;
                         if (pkt == null)
                         {
                             // First message must be a Connection Request
                             break;
                         }
 
-                        this.UnitID = ushort.Parse(message.RXID_OBJECT);
+                        this.Name = message.RXID_OBJECT;
 
                         if (OnConnectionRequest != null)
                         {
@@ -103,10 +102,10 @@ namespace IPOCS
                             }
                         }
 
-                        this.staleTimer.Change(Timeout.Infinite, Timeout.Infinite);
+                        this.StaleTimer.Change(Timeout.Infinite, Timeout.Infinite);
 
-                        var responseMsg = new IPOCS.Protocol.Message();
-                        responseMsg.RXID_OBJECT = this.UnitID.ToString();
+                        var responseMsg = new Protocol.Message();
+                        responseMsg.RXID_OBJECT = Name;
                         responseMsg.packets.Add(new IPOCS.Protocol.Packets.ConnectionResponse
                         {
                             RM_PROTOCOL_VERSION = pkt.RM_PROTOCOL_VERSION
@@ -131,7 +130,7 @@ namespace IPOCS
 
         public void Disconnect()
         {
-            this.tcpClient.Close();
+            this.TcpClient.Close();
         }
 
         public void Send(IPOCS.Protocol.Message msg)
@@ -139,7 +138,7 @@ namespace IPOCS
             var buffer = msg.serialize().ToArray();
             try
             {
-                this.tcpClient.GetStream().Write(buffer, 0, buffer.Length);
+                this.TcpClient.GetStream().Write(buffer, 0, buffer.Length);
             } catch { }
         }
     }

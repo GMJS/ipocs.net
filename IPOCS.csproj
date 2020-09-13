@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0;net472</TargetFrameworks>
-    <RepositoryUrl>https://github.com/GMJS/ipocs.net</RepositoryUrl>
+    <RepositoryUrl>https://github.com/ipocsmr/ipocs.net</RepositoryUrl>
   </PropertyGroup>
 
   <ItemGroup>

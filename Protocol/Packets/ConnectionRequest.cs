@@ -20,7 +20,7 @@ namespace IPOCS.Protocol.Packets
         ll++;
       }
       List<byte> name = buffer.Skip(2).ToList();
-      this.RXID_SITE_DATA_VERSION = Encoding.ASCII.GetString(name.ToArray(), 0, name.Count - 1);
+      this.RXID_SITE_DATA_VERSION = Encoding.UTF8.GetString(name.ToArray(), 0, name.Count - 1);
       this.RXID_SITE_DATA_VERSION = this.RXID_SITE_DATA_VERSION.Trim();
       ll++;
       return (byte)(2 + ll);
